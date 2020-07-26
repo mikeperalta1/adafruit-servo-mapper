@@ -5,6 +5,8 @@ name = "pypi"
 
 [packages]
 pyaml = "*"
+adafruit-circuitpython-servokit = "*"
+getch = "*"
 
 [dev-packages]
 
