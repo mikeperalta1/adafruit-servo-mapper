@@ -24,6 +24,7 @@ class MikesServoMapper:
 	__ESCAPE_KEY = chr(27)
 	
 	__DEFAULT_OUTPUT_FILE_NAME = "servo-mappings.yml"
+	__DEFAULT_SERVO_CHANNEL_MAPPING_KEY = "servo-to-channel"
 	
 	def __init__(self, config_file: str = None, names=None, output_file: str = None):
 		
@@ -124,7 +125,7 @@ class MikesServoMapper:
 			self.__logger.info("3. Write mappings to file")
 			self.__logger.info("4. Load previously saved mappings")
 			self.__logger.info("Q. Quit")
-			user_choice = input("====> ")
+			user_choice = getch.getch()
 			
 			if user_choice == "q" or user_choice == "Q":
 				self.__logger.info("Quitting!")
@@ -171,7 +172,7 @@ class MikesServoMapper:
 			
 			self.__logger.info("")
 			self.__logger.info("Please enter a number to change the corresponding mapping, or Q to quit.")
-			user_input = input("==========> ")
+			user_input = getch.getch()
 			if user_input == "Q" or user_input == "q":
 				self.__logger.info("Quitting mapping mode")
 				break
@@ -196,7 +197,9 @@ class MikesServoMapper:
 			self.__logger.info("Mapping channel for: %s" % (name,))
 			self.__logger.info(
 				"Press a key between 0-9 and A-F to try a channel."
-				" Press the space bar when you've found the correct channel, or escape to abort."
+			)
+			self.__logger.info(
+				"Press the space bar when you've found the correct channel, or escape to abort."
 			)
 			self.__logger.info("Currently selected channel: %s" % selected_channel)
 			
@@ -273,7 +276,7 @@ class MikesServoMapper:
 		self.__logger.info("Writing mappings to output file: %s" % (output_file_path,))
 		
 		data = {
-			"servo-mappings": self.__mappings
+			self.__DEFAULT_SERVO_CHANNEL_MAPPING_KEY: self.__mappings
 		}
 		
 		with open(output_file_path, 'w') as f:
@@ -289,11 +292,11 @@ class MikesServoMapper:
 		with open(file_path) as f:
 			loaded_data = yaml.safe_load(f)
 		
-		if "servo-mappings" not in loaded_data.keys():
+		if self.__DEFAULT_SERVO_CHANNEL_MAPPING_KEY not in loaded_data.keys():
 			self.__logger.warning("Could not find key 'servo-mappings' in loaded data")
 			return
 		
-		mappings = loaded_data["servo-mappings"]
+		mappings = loaded_data[self.__DEFAULT_SERVO_CHANNEL_MAPPING_KEY]
 		if not isinstance(mappings, dict):
 			self.__logger.warning("Mappings aren't in dict format; Won't load")
 			return
