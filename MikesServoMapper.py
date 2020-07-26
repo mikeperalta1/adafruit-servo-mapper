@@ -25,20 +25,27 @@ class MikesServoMapper:
 	
 	__DEFAULT_OUTPUT_FILE_NAME = "servo-mappings.yml"
 	
-	def __init__(self, config_file: str, names):
+	def __init__(self, config_file: str = None, names=None, output_file: str = None):
 		
 		# noinspection PyTypeChecker
 		self.__logger: logging.Logger = None
 		self.__logger_formatter = None
 		self.init_logging()
 		
-		self.__names = list(names)
+		if names is None:
+			self.__names = list()
+		else:
+			self.__names = list(names)
 		self.__names.sort()
 		
 		self.__config = None
 		self.load_config(config_file)
 		self.pull_config_names()
 		self.__logger.info("Names: %s" % (pprint.pformat(self.__names)))
+		
+		self.__output_file_path = output_file
+		if self.__output_file_path is None:
+			self.__output_file_path = self.make_default_mappings_output_file_path()
 		
 		self.__mappings = {}
 	
@@ -112,7 +119,7 @@ class MikesServoMapper:
 			
 			self.__logger.info("")
 			self.__logger.info("Please choose a mode: ")
-			self.__logger.info("1. Create mappings")
+			self.__logger.info("1. Edit mappings")
 			self.__logger.info("2. Test current mappings")
 			self.__logger.info("3. Write mappings to file")
 			self.__logger.info("4. Load previously saved mappings")
@@ -124,7 +131,7 @@ class MikesServoMapper:
 				break
 			
 			if user_choice == "1":
-				self.do_mappings()
+				self.edit_mappings()
 			elif user_choice == "2":
 				self.test_mappings()
 			elif user_choice == "3":
@@ -134,7 +141,7 @@ class MikesServoMapper:
 			else:
 				self.__logger.warning("Invalid choice: %s" % user_choice)
 	
-	def do_mappings(self):
+	def edit_mappings(self):
 		
 		self.__logger.info("Begin mapping mode !")
 		
@@ -250,7 +257,7 @@ class MikesServoMapper:
 		# Center
 		servo.angle = 90
 	
-	def make_mappings_output_file_path(self):
+	def make_default_mappings_output_file_path(self):
 		
 		output_file_path = os.path.join(
 			"output",
@@ -261,7 +268,9 @@ class MikesServoMapper:
 	
 	def write_mappings(self):
 		
-		output_file_path = self.make_mappings_output_file_path()
+		output_file_path = self.__output_file_path
+		
+		self.__logger.info("Writing mappings to output file: %s" % (output_file_path,))
 		
 		data = {
 			"servo-mappings": self.__mappings
@@ -273,7 +282,7 @@ class MikesServoMapper:
 	def load_mappings(self, file_path=None):
 		
 		if file_path is None:
-			file_path = self.make_mappings_output_file_path()
+			file_path = self.__output_file_path
 		
 		self.__logger.info("Attempting to load mappings from: %s" % (file_path,))
 		

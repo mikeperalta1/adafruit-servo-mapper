@@ -26,12 +26,20 @@ def main():
 		action="append",
 		dest="names"
 	)
+	parser.add_argument(
+		"--output", "--output-path",
+		help="Override the default mapping output path",
+		required=False,
+		default=None,
+		dest="output_file"
+	)
 	
 	args = parser.parse_args()
 	
 	mapper = MikesServoMapper(
 		config_file=args.config_file,
-		names=args.names
+		names=args.names,
+		output_file=args.output_file
 	)
 	mapper.run()
 
