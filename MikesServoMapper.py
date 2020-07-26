@@ -5,13 +5,10 @@ from adafruit_servokit import ServoKit
 
 import getch
 import logging
-import multiprocessing
 import os
 import pprint
 import sys
 import time
-import threading
-import tty
 import yaml
 
 
@@ -25,6 +22,8 @@ class MikesServoMapper:
 	__DEFAULT_JIGGLE_SLICES = 50
 	
 	__ESCAPE_KEY = chr(27)
+	
+	__DEFAULT_OUTPUT_FILE_NAME = "servo-mappings.yml"
 	
 	def __init__(self, config_file: str, names):
 		
@@ -116,6 +115,7 @@ class MikesServoMapper:
 			self.__logger.info("1. Create mappings")
 			self.__logger.info("2. Test current mappings")
 			self.__logger.info("3. Write mappings to file")
+			self.__logger.info("4. Load previously saved mappings")
 			self.__logger.info("Q. Quit")
 			user_choice = input("====> ")
 			
@@ -129,6 +129,8 @@ class MikesServoMapper:
 				self.test_mappings()
 			elif user_choice == "3":
 				self.write_mappings()
+			elif user_choice == "4":
+				self.load_mappings()
 			else:
 				self.__logger.warning("Invalid choice: %s" % user_choice)
 	
@@ -248,12 +250,56 @@ class MikesServoMapper:
 		# Center
 		servo.angle = 90
 	
-	def write_mappings(self):
+	def make_mappings_output_file_path(self):
 		
 		output_file_path = os.path.join(
 			"output",
-			"servo-mappings.yml"
+			self.__DEFAULT_OUTPUT_FILE_NAME
 		)
 		
+		return output_file_path
+	
+	def write_mappings(self):
+		
+		output_file_path = self.make_mappings_output_file_path()
+		
+		data = {
+			"servo-mappings": self.__mappings
+		}
+		
 		with open(output_file_path, 'w') as f:
-			yaml.dump(self.__mappings, f, default_flow_style=False)
+			yaml.dump(data, f, default_flow_style=False)
+	
+	def load_mappings(self, file_path=None):
+		
+		if file_path is None:
+			file_path = self.make_mappings_output_file_path()
+		
+		self.__logger.info("Attempting to load mappings from: %s" % (file_path,))
+		
+		with open(file_path) as f:
+			loaded_data = yaml.safe_load(f)
+		
+		if "servo-mappings" not in loaded_data.keys():
+			self.__logger.warning("Could not find key 'servo-mappings' in loaded data")
+			return
+		
+		mappings = loaded_data["servo-mappings"]
+		if not isinstance(mappings, dict):
+			self.__logger.warning("Mappings aren't in dict format; Won't load")
+			return
+		
+		for name in mappings.keys():
+			
+			self.__logger.info("Examining mapping: %s" % (name,))
+			
+			channel = mappings[name]
+			
+			if not isinstance(channel, int):
+				self.__logger.warning("Mapping isn't an integer; Ignoring: %s" % channel)
+				continue
+			
+			self.__logger.info("Loading mapping: %s ==> %s" % (name, channel))
+			self.set_name_mapping(name=name, channel=channel)
+		
+		self.__logger.info("Done loading mappings")
