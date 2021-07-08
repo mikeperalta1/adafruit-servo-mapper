@@ -142,15 +142,22 @@ class MikesServoMapper:
 			else:
 				self.__logger.warning("Invalid choice: %s" % user_choice)
 	
-	def edit_mappings(self):
-		
-		self.__logger.info("Begin mapping mode !")
+	def get_servo_kit(self):
 		
 		i2c_address = self.determine_i2c_address()
 		servo_kit = ServoKit(
 			address=i2c_address,
 			channels=self.__CHANNELS_COUNT
 		)
+		
+		return servo_kit
+	
+	def edit_mappings(self):
+		
+		self.__logger.info("Begin mapping mode !")
+		
+		#
+		servo_kit = self.get_servo_kit()
 		
 		#
 		while True:
@@ -227,12 +234,15 @@ class MikesServoMapper:
 	
 		self.__logger.info("Testing mappings!")
 		
+		#
+		servo_kit = self.get_servo_kit()
+		
+		#
 		for name in self.__mappings.keys():
 			
 			channel = self.get_name_mapping(name=name)
 			self.__logger.info("Jiggling mapping: %s ==> %s" % (name, channel))
-			
-			time.sleep(1)
+			self.jiggle_channel(servo_kit=servo_kit, channel=channel)
 		
 		self.__logger.info("Done testing mappings")
 	
