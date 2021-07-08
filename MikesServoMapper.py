@@ -172,7 +172,7 @@ class MikesServoMapper:
 			
 			self.__logger.info("")
 			self.__logger.info("Please enter a number to change the corresponding mapping, or Q to quit.")
-			user_input = getch.getch()
+			user_input = input()
 			if user_input == "Q" or user_input == "q":
 				self.__logger.info("Quitting mapping mode")
 				break
